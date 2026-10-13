@@ -1,0 +1,687 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Special Surprise for Siri</title>
+  <link href="https://fonts.googleapis.com/css2?family=Cinzel+Decorative:wght@700&family=Great+Vibes&family=Marcellus&display=swap" rel="stylesheet">
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+      user-select: none;
+    }
+
+    body {
+      background: #030712;
+      min-height: 100vh;
+      overflow-x: hidden;
+      overflow-y: auto;
+      font-family: 'Marcellus', serif;
+      color: #3b2006;
+      position: relative;
+    }
+
+    /* Lock Screen Modal */
+    #lockScreen {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100vw;
+      height: 100vh;
+      background: rgba(3, 7, 18, 0.95);
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+      z-index: 99999;
+      color: #ffd700;
+    }
+
+    .lock-box {
+      background: rgba(255, 255, 255, 0.08);
+      border: 2px solid #ffd700;
+      padding: 35px 30px;
+      border-radius: 20px;
+      box-shadow: 0 0 35px rgba(255, 215, 0, 0.3);
+      text-align: center;
+      max-width: 340px;
+      width: 90%;
+    }
+
+    .lock-box h2 {
+      font-size: 1.3rem;
+      margin-bottom: 20px;
+      letter-spacing: 2px;
+      color: #ffd700;
+    }
+
+    .pass-input {
+      width: 100%;
+      padding: 12px;
+      font-size: 1.5rem;
+      text-align: center;
+      letter-spacing: 8px;
+      background: rgba(0, 0, 0, 0.7);
+      border: 2px solid #e2a03f;
+      border-radius: 10px;
+      color: #fff;
+      outline: none;
+      margin-bottom: 15px;
+    }
+
+    .unlock-btn {
+      width: 100%;
+      padding: 12px;
+      font-size: 1.1rem;
+      font-weight: bold;
+      background: linear-gradient(135deg, #ff7b00, #ff0055);
+      border: none;
+      border-radius: 10px;
+      color: #fff;
+      cursor: pointer;
+      box-shadow: 0 0 15px rgba(255, 123, 0, 0.5);
+    }
+
+    .error-msg {
+      color: #ff4757;
+      font-size: 0.95rem;
+      margin-top: 12px;
+      display: none;
+    }
+
+    /* Sky & Canvas */
+    .sky-container {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      pointer-events: none;
+      z-index: 1;
+    }
+
+    .moon {
+      position: absolute;
+      top: 40px;
+      right: 12%;
+      width: 85px;
+      height: 85px;
+      background: radial-gradient(circle, #fffdf0 0%, #f4e8c1 70%, #d4c08b 100%);
+      border-radius: 50%;
+      box-shadow: 0 0 35px rgba(255, 250, 220, 0.9), 0 0 80px rgba(255, 240, 180, 0.4);
+    }
+
+    /* Cosmic Starfish in Sky */
+    .cosmic-starfish {
+      position: absolute;
+      width: 55px;
+      height: 55px;
+      pointer-events: none;
+      z-index: 2;
+      animation: floatStarfish 18s linear infinite;
+      filter: drop-shadow(0 0 12px #ff4d94) drop-shadow(0 0 25px #ffd700);
+    }
+
+    @keyframes floatStarfish {
+      0% {
+        top: 20%;
+        left: -80px;
+        transform: rotate(0deg) scale(0.85);
+      }
+      50% {
+        top: 35%;
+        left: 55vw;
+        transform: rotate(180deg) scale(1.1);
+      }
+      100% {
+        top: 15%;
+        left: 105vw;
+        transform: rotate(360deg) scale(0.85);
+      }
+    }
+
+    canvas#fireworksCanvas {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      z-index: 3;
+      pointer-events: none;
+    }
+
+    /* Interactive Stage */
+    #interactiveStage {
+      position: fixed;
+      bottom: 10px;
+      left: 0;
+      width: 100%;
+      height: 260px;
+      z-index: 50;
+      display: none;
+    }
+
+    .stage-instructions {
+      position: absolute;
+      top: 0;
+      left: 50%;
+      transform: translateX(-50%);
+      color: #ffd700;
+      font-size: 1.05rem;
+      text-align: center;
+      text-shadow: 0 0 10px rgba(0,0,0,0.9);
+      pointer-events: none;
+      width: 90%;
+    }
+
+    /* Rocket Setup */
+    .rocket-stand {
+      position: absolute;
+      bottom: 20px;
+      left: 50%;
+      transform: translateX(-50%);
+      width: 60px;
+      height: 150px;
+    }
+
+    .rocket-body {
+      width: 24px;
+      height: 75px;
+      background: linear-gradient(180deg, #ff0055, #ff5e00);
+      margin: 0 auto;
+      border-radius: 12px 12px 3px 3px;
+      position: relative;
+      box-shadow: 0 0 12px rgba(255, 94, 0, 0.6);
+    }
+
+    .rocket-cone {
+      width: 0;
+      height: 0;
+      border-left: 14px solid transparent;
+      border-right: 14px solid transparent;
+      border-bottom: 20px solid #ffd700;
+      position: absolute;
+      top: -18px;
+      left: -2px;
+    }
+
+    .rocket-stick {
+      width: 4px;
+      height: 90px;
+      background: #8b5a2b;
+      margin: 0 auto;
+    }
+
+    .rocket-fuse {
+      position: absolute;
+      bottom: 70px;
+      right: 6px;
+      width: 16px;
+      height: 16px;
+      border-right: 3px solid #ccc;
+      border-bottom: 3px solid #ccc;
+      border-radius: 0 0 12px 0;
+    }
+
+    .fuse-target {
+      position: absolute;
+      top: -8px;
+      right: -8px;
+      width: 26px;
+      height: 26px;
+      border-radius: 50%;
+      background: rgba(255, 215, 0, 0.25);
+      border: 1px dashed #ffd700;
+      animation: pulseTarget 1.5s infinite alternate;
+    }
+
+    @keyframes pulseTarget {
+      from { transform: scale(0.9); opacity: 0.6; }
+      to { transform: scale(1.3); opacity: 1; }
+    }
+
+    /* Sparkler */
+    #sparkler {
+      position: absolute;
+      bottom: 40px;
+      left: 20%;
+      width: 80px;
+      height: 80px;
+      cursor: grab;
+      touch-action: none;
+    }
+
+    .sparkler-rod {
+      width: 4px;
+      height: 60px;
+      background: linear-gradient(to top, #777, #fff);
+      transform: rotate(35deg);
+      position: absolute;
+      bottom: 10px;
+      left: 30px;
+      border-radius: 2px;
+    }
+
+    .sparkler-flame {
+      position: absolute;
+      top: 15px;
+      left: 55px;
+      width: 14px;
+      height: 14px;
+      background: radial-gradient(circle, #fff, #ffd700, #ff3300);
+      border-radius: 50%;
+      box-shadow: 0 0 15px #ffd700, 0 0 25px #ff5500;
+      animation: sparkleFlicker 0.1s infinite alternate;
+    }
+
+    @keyframes sparkleFlicker {
+      0% { transform: scale(0.8); }
+      100% { transform: scale(1.3); }
+    }
+
+    #fuseSpark {
+      position: absolute;
+      top: -4px;
+      right: -4px;
+      width: 12px;
+      height: 12px;
+      background: #ffea00;
+      border-radius: 50%;
+      box-shadow: 0 0 15px #ff4500, 0 0 25px #ffea00;
+      display: none;
+      animation: sparkleFlicker 0.1s infinite;
+    }
+
+    .progress-bar-container {
+      position: absolute;
+      bottom: -15px;
+      left: -20px;
+      width: 100px;
+      height: 8px;
+      background: rgba(255,255,255,0.2);
+      border-radius: 5px;
+      display: none;
+    }
+
+    .progress-bar-fill {
+      width: 0%;
+      height: 100%;
+      background: linear-gradient(90deg, #ffea00, #ff3300);
+      border-radius: 5px;
+      transition: width 0.1s linear;
+    }
+
+    /* Talapathram (Parchment Scroll) */
+    .scroll-wrapper {
+      position: relative;
+      z-index: 100;
+      max-width: 780px;
+      margin: 40px auto 100px auto;
+      padding: 20px;
+      display: none;
+      opacity: 0;
+      transform: scaleY(0.05);
+      transform-origin: center top;
+      transition: all 1.8s cubic-bezier(0.25, 1, 0.5, 1);
+    }
+
+    .scroll-wrapper.open {
+      display: block;
+      opacity: 1;
+      transform: scaleY(1);
+    }
+
+    .thalapathram {
+      background: linear-gradient(180deg, #dfc088 0%, #f6e6be 20%, #f3dec0 50%, #e8ca96 80%, #ce9f5c 100%);
+      border: 12px solid transparent;
+      border-image: linear-gradient(to bottom, #7d4411, #caa256, #5c2f08) 12;
+      box-shadow: 0 0 50px rgba(0, 0, 0, 0.9), inset 0 0 60px rgba(139, 69, 19, 0.35);
+      border-radius: 12px;
+      padding: 45px 35px;
+      position: relative;
+    }
+
+    .thalapathram::before, .thalapathram::after {
+      content: "";
+      position: absolute;
+      left: -15px;
+      right: -15px;
+      height: 22px;
+      background: linear-gradient(90deg, #4a2404, #945d1d, #deb887, #945d1d, #4a2404);
+      border-radius: 10px;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.6);
+    }
+    .thalapathram::before { top: -14px; }
+    .thalapathram::after { bottom: -14px; }
+
+    .letter-title {
+      font-family: 'Cinzel Decorative', cursive;
+      text-align: center;
+      font-size: 1.8rem;
+      color: #63170b;
+      margin-bottom: 25px;
+      text-shadow: 1px 1px 2px rgba(255, 235, 160, 0.8);
+      border-bottom: 2px dashed #a46d29;
+      padding-bottom: 12px;
+    }
+
+    .letter-content {
+      font-size: 1.15rem;
+      line-height: 2;
+      color: #3b1b04;
+      text-align: justify;
+      white-space: pre-line;
+      text-shadow: 0.5px 0.5px 1px rgba(255, 255, 255, 0.3);
+    }
+
+    .letter-footer {
+      margin-top: 35px;
+      text-align: right;
+      font-size: 1.35rem;
+      font-family: 'Great Vibes', cursive;
+      color: #6a1a0c;
+    }
+  </style>
+</head>
+<body>
+
+  <!-- 1. Lock Screen (Passcode: 2003) -->
+  <div id="lockScreen">
+    <div class="lock-box">
+      <h2>🔐 ENTER PASSCODE</h2>
+      <input type="password" id="passInput" class="pass-input" maxlength="4" placeholder="••••" autocomplete="off">
+      <button class="unlock-btn" onclick="checkPasscode()">UNLOCK ✨</button>
+      <div id="errorMsg" class="error-msg">Incorrect Code! Try Again ❤️</div>
+    </div>
+  </div>
+
+  <!-- Sky, Moon & Glowing Starfish -->
+  <div class="sky-container">
+    <div class="moon"></div>
+    <svg class="cosmic-starfish" viewBox="0 0 100 100">
+      <!-- 5-Point Starfish Shape with Glow -->
+      <polygon points="50,5 64,36 98,38 72,61 80,95 50,75 20,95 28,61 2,38 36,36" 
+               fill="url(#starfishGrad)" stroke="#fff" stroke-width="2"/>
+      <defs>
+        <radialGradient id="starfishGrad" cx="50%" cy="50%" r="50%">
+          <stop offset="0%" stop-color="#fffb96"/>
+          <stop offset="45%" stop-color="#ff0077"/>
+          <stop offset="100%" stop-color="#7928ca"/>
+        </radialGradient>
+      </defs>
+    </svg>
+  </div>
+
+  <!-- Stars & Fireworks Canvas -->
+  <canvas id="fireworksCanvas"></canvas>
+
+  <!-- 2. Interactive Stage -->
+  <div id="interactiveStage">
+    <div class="stage-instructions">
+      ✨ <b>Kaakipuvvu</b> ni drag chesi <b>Rocket Vathi</b> daggara 3 sec unchandi!
+    </div>
+
+    <div class="rocket-stand" id="rocketStand">
+      <div class="rocket-body">
+        <div class="rocket-cone"></div>
+        <div class="rocket-fuse">
+          <div class="fuse-target" id="fuseTarget"></div>
+          <div id="fuseSpark"></div>
+        </div>
+      </div>
+      <div class="rocket-stick"></div>
+      <div class="progress-bar-container" id="progressBarContainer">
+        <div class="progress-bar-fill" id="progressBarFill"></div>
+      </div>
+    </div>
+
+    <div id="sparkler">
+      <div class="sparkler-rod"></div>
+      <div class="sparkler-flame" id="flamePoint"></div>
+    </div>
+  </div>
+
+  <!-- 3. Talapathram Letter (Customized for Siri - Long Distance & Nov 5th Birthday) -->
+  <div class="scroll-wrapper" id="scrollWrapper">
+    <div class="thalapathram">
+      <div class="letter-title">Priyamaana Siri-ku ❤️</div>
+      <div class="letter-content">
+En Anbana Siri,
+
+Namma madhyalo entho distance unna, en hrudayam lo eppudu nee dhyanam thappithe inko aalochana ledhu. Dooram anedhi manalni physically vere places lo unchavachu kani, mana madhya unna prema ni kshanam kuda veru cheyaledhu. Roju ninnu chudalekapoyina, nee gnapakaalu, nee chirunavvu nannu eppudu ontariga undanivvavu.
+
+<b>Advance Happy Birthday My Dear Siri (November 5th)! 🎂✨</b>
+
+Ee prapancham lo naaku dorikina athi goppa varam nuvve Siri. Nee birthday naaku entho prathyekam. Nuvvu eppudu santhosham ga, aahladham ga undalani, nee pedhavula meedha aa andhamaina navvu eppatiki alage undalani manasara korukuntunna. Entha dooram lo unna sare, prati nimisham nee pakkane undi unnatte anipisthundi.
+
+Nee kanavulu anni nijam avvali, nee life lo nuvvu anukunnadi saadhinchali. Manam daggara ayye roju kosam, nee cheyini malli gattiga pattukune tharunam kosam en manam aathram tho eduru chusthondi.
+
+Nuvvu naaku entha special anedhi maatalallo cheppalenu. 
+
+<b>I Love You So Much, My Siri! ❤️</b>
+Happy Birthday in Advance My World! 🌟
+      </div>
+      <div class="letter-footer">
+        Endrum unnai manadhaara nesikkum un Anban... ❤️
+      </div>
+    </div>
+  </div>
+
+  <!-- Song File -->
+  <audio id="bgSong" preload="auto">
+    <source src="song.mp3" type="audio/mpeg">
+  </audio>
+
+  <script>
+    let audioCtx = null;
+    let sparkNoiseNode = null;
+
+    function initAudio() {
+      if (!audioCtx) {
+        audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+      }
+    }
+
+    function startSparkSound() {
+      if (!audioCtx || sparkNoiseNode) return;
+      const bufferSize = audioCtx.sampleRate * 2;
+      const buffer = audioCtx.createBuffer(1, bufferSize, audioCtx.sampleRate);
+      const output = buffer.getChannelData(0);
+      for (let i = 0; i < bufferSize; i++) {
+        output[i] = Math.random() * 2 - 1;
+      }
+      sparkNoiseNode = audioCtx.createBufferSource();
+      sparkNoiseNode.buffer = buffer;
+      sparkNoiseNode.loop = true;
+
+      const filter = audioCtx.createBiquadFilter();
+      filter.type = 'highpass';
+      filter.frequency.setValueAtTime(2500, audioCtx.currentTime);
+
+      const gain = audioCtx.createGain();
+      gain.gain.setValueAtTime(0.08, audioCtx.currentTime);
+
+      sparkNoiseNode.connect(filter);
+      filter.connect(gain);
+      gain.connect(audioCtx.destination);
+      sparkNoiseNode.start();
+    }
+
+    function stopSparkSound() {
+      if (sparkNoiseNode) {
+        try { sparkNoiseNode.stop(); } catch(e){}
+        sparkNoiseNode = null;
+      }
+    }
+
+    function playRocketWhistle() {
+      if (!audioCtx) return;
+      const osc = audioCtx.createOscillator();
+      const gain = audioCtx.createGain();
+
+      osc.type = 'sine';
+      osc.frequency.setValueAtTime(320, audioCtx.currentTime);
+      osc.frequency.exponentialRampToValueAtTime(1400, audioCtx.currentTime + 1.8);
+
+      gain.gain.setValueAtTime(0.01, audioCtx.currentTime);
+      gain.gain.linearRampToValueAtTime(0.35, audioCtx.currentTime + 0.2);
+      gain.gain.linearRampToValueAtTime(0.01, audioCtx.currentTime + 1.8);
+
+      osc.connect(gain);
+      gain.connect(audioCtx.destination);
+
+      osc.start();
+      osc.stop(audioCtx.currentTime + 1.8);
+    }
+
+    function playExplosionSound() {
+      if (!audioCtx) return;
+      const bufferSize = audioCtx.sampleRate * 2;
+      const buffer = audioCtx.createBuffer(1, bufferSize, audioCtx.sampleRate);
+      const data = buffer.getChannelData(0);
+      for (let i = 0; i < bufferSize; i++) {
+        data[i] = Math.random() * 2 - 1;
+      }
+
+      const noise = audioCtx.createBufferSource();
+      noise.buffer = buffer;
+
+      const filter = audioCtx.createBiquadFilter();
+      filter.type = 'lowpass';
+      filter.frequency.setValueAtTime(900, audioCtx.currentTime);
+      filter.frequency.exponentialRampToValueAtTime(40, audioCtx.currentTime + 1.6);
+
+      const gain = audioCtx.createGain();
+      gain.gain.setValueAtTime(1.8, audioCtx.currentTime);
+      gain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + 1.8);
+
+      noise.connect(filter);
+      filter.connect(gain);
+      gain.connect(audioCtx.destination);
+
+      noise.start();
+      noise.stop(audioCtx.currentTime + 1.8);
+    }
+
+    // Passcode 2003
+    function checkPasscode() {
+      const input = document.getElementById('passInput').value;
+      if (input === '2003') {
+        initAudio();
+        document.getElementById('lockScreen').style.display = 'none';
+        document.getElementById('interactiveStage').style.display = 'block';
+      } else {
+        const err = document.getElementById('errorMsg');
+        err.style.display = 'block';
+        document.getElementById('passInput').value = '';
+      }
+    }
+
+    document.getElementById('passInput').addEventListener('keypress', function(e) {
+      if (e.key === 'Enter') checkPasscode();
+    });
+
+    // Canvas Twinkling Stars & Fireworks Setup
+    const canvas = document.getElementById('fireworksCanvas');
+    const ctx = canvas.getContext('2d');
+    let width, height;
+    let stars = [];
+
+    function resize() {
+      width = canvas.width = window.innerWidth;
+      height = canvas.height = window.innerHeight;
+      createStars();
+    }
+
+    function createStars() {
+      stars = [];
+      const numStars = Math.floor((width * height) / 3500);
+      for (let i = 0; i < numStars; i++) {
+        stars.push({
+          x: Math.random() * width,
+          y: Math.random() * (height * 0.75),
+          radius: Math.random() * 1.5 + 0.5,
+          alpha: Math.random(),
+          speed: Math.random() * 0.02 + 0.005
+        });
+      }
+    }
+
+    window.addEventListener('resize', resize);
+    resize();
+
+    let particles = [];
+    let rocket = null;
+
+    class Rocket {
+      constructor(startX, startY, targetX, targetY) {
+        this.x = startX;
+        this.y = startY;
+        this.targetX = targetX;
+        this.targetY = targetY;
+        this.speed = 11;
+        this.angle = Math.atan2(targetY - startY, targetX - startX);
+        this.distanceToTarget = Math.hypot(targetX - startX, targetY - startY);
+        this.distanceTraveled = 0;
+        this.trail = [];
+      }
+
+      update() {
+        this.trail.push({x: this.x, y: this.y});
+        if (this.trail.length > 6) this.trail.shift();
+
+        const vx = Math.cos(this.angle) * this.speed;
+        const vy = Math.sin(this.angle) * this.speed;
+
+        this.x += vx;
+        this.y += vy;
+        this.distanceTraveled += Math.hypot(vx, vy);
+
+        if (this.distanceTraveled >= this.distanceToTarget) {
+          createExplosion(this.targetX, this.targetY);
+          rocket = null;
+        }
+      }
+
+      draw() {
+        ctx.strokeStyle = '#ffd700';
+        ctx.lineWidth = 3.5;
+        ctx.beginPath();
+        if (this.trail.length > 0) {
+          ctx.moveTo(this.trail[0].x, this.trail[0].y);
+          for (let p of this.trail) ctx.lineTo(p.x, p.y);
+        }
+        ctx.stroke();
+
+        ctx.fillStyle = '#ff2200';
+        ctx.beginPath();
+        ctx.arc(this.x, this.y, 4, 0, Math.PI * 2);
+        ctx.fill();
+      }
+    }
+
+    class Particle {
+      constructor(x, y, color) {
+        this.x = x;
+        this.y = y;
+        this.color = color;
+        const angle = Math.random() * Math.PI * 2;
+        const speed = Math.random() * 9 + 2;
+        this.vx = Math.cos(angle) * speed;
+        this.vy = Math.sin(angle) * speed;
+        this.alpha = 1;
+        this.decay = Math.random() * 0.015 + 0.012;
+      }
+
+      update() {
+        this.vx *= 0.96;
+        this.vy *= 0.96;
+        this.vy += 0.08;
+        this.x += this.vx;
+        this.y += this.vy;
+        this.alpha -= this.decay;
+      }
+
+      draw()
